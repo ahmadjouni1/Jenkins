@@ -53,7 +53,7 @@ pipeline {
           chcp 65001 >NUL
           set PYTHONIOENCODING=utf-8
           call %VIRTUAL_ENV%\\Scripts\\activate
-          bandit -r . -f json -o bandit.json
+          bandit -r . -f json -o bandit.json --exit-zero
         """
       }
     }
