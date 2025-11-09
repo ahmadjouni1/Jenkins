@@ -51,13 +51,16 @@ pipeline {
 
     
     stage('Security Scan') {
-      steps {
-        bat """
-          call %VIRTUAL_ENV%\\Scripts\\activate
-          bandit -r .
-        """
-      }
-    }
+  steps {
+    bat """
+      chcp 65001 >NUL
+      set PYTHONIOENCODING=utf-8
+      call %VIRTUAL_ENV%\\Scripts\\activate
+      bandit -r . -f json -o bandit.json
+    """
+  }
+}
+
 
     stage('Deploy') {
       steps {
@@ -67,8 +70,9 @@ pipeline {
   }
 
   post {
-    always {
-      cleanWs()
-    }
+  always {
+    archiveArtifacts artifacts: 'bandit.json, htmlcov/**', fingerprint: true
+    cleanWs()
   }
 }
+
