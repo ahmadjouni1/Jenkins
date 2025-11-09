@@ -6,15 +6,15 @@ pipeline {
   }
 
   stages {
+
     stage('Setup') {
       steps {
         bat """
-          if not exist %WORKSPACE%\\%VIRTUAL_ENV% (
-            python -m venv %VIRTUAL_ENV%
-          )
+          if not exist %WORKSPACE%\\%VIRTUAL_ENV% (python -m venv %VIRTUAL_ENV%)
           call %VIRTUAL_ENV%\\Scripts\\activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install coverage bandit
         """
       }
     }
@@ -37,10 +37,31 @@ pipeline {
       }
     }
 
+ 
+    stage('Coverage') {
+      steps {
+        bat """
+          call %VIRTUAL_ENV%\\Scripts\\activate
+          coverage run -m unittest discover -s tests -p "test_*.py"
+          coverage report
+          coverage html
+        """
+      }
+    }
+
+    
+    stage('Security Scan') {
+      steps {
+        bat """
+          call %VIRTUAL_ENV%\\Scripts\\activate
+          bandit -r .
+        """
+      }
+    }
+
     stage('Deploy') {
       steps {
         echo "Deploying application..."
-        // put real deploy steps here later
       }
     }
   }
