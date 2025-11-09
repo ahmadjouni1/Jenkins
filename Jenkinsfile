@@ -6,15 +6,14 @@ pipeline {
   }
 
   stages {
-
     stage('Setup') {
       steps {
         bat """
-          if not exist %WORKSPACE%\\%VIRTUAL_ENV% (python -m venv %VIRTUAL_ENV%)
+          if not exist "%WORKSPACE%\\%VIRTUAL_ENV%" (python -m venv %VIRTUAL_ENV%)
           call %VIRTUAL_ENV%\\Scripts\\activate
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
-          python -m pip install coverage bandit
+          python -m pip install coverage bandit flake8
         """
       }
     }
@@ -37,7 +36,6 @@ pipeline {
       }
     }
 
- 
     stage('Coverage') {
       steps {
         bat """
@@ -49,30 +47,28 @@ pipeline {
       }
     }
 
-    
     stage('Security Scan') {
-  steps {
-    bat """
-      chcp 65001 >NUL
-      set PYTHONIOENCODING=utf-8
-      call %VIRTUAL_ENV%\\Scripts\\activate
-      bandit -r . -f json -o bandit.json
-    """
-  }
-}
-
+      steps {
+        bat """
+          chcp 65001 >NUL
+          set PYTHONIOENCODING=utf-8
+          call %VIRTUAL_ENV%\\Scripts\\activate
+          bandit -r . -f json -o bandit.json
+        """
+      }
+    }
 
     stage('Deploy') {
       steps {
-        echo "Deploying application..."
+        echo 'Deploying application...'
       }
     }
   }
 
   post {
-  always {
-    archiveArtifacts artifacts: 'bandit.json, htmlcov/**', fingerprint: true
-    cleanWs()
+    always {
+      archiveArtifacts artifacts: 'bandit.json, htmlcov/**', fingerprint: true, allowEmptyArchive: true
+      cleanWs()
+    }
   }
 }
-
